@@ -46,6 +46,7 @@ module ActiveDirectory
 		#     :port => 389,
 		#     :base => 'dc=example,dc=org',
 		#     :auth => {
+		#	:method	=> :simple,
 		#       :username => 'querying_user@example.org',
 		#       :password => 'querying_users_password'
 		#     }
@@ -65,6 +66,7 @@ module ActiveDirectory
 		#
 		def self.setup(settings)
 			@@settings = settings
+			@@ldap_connected = false
 			@@ldap = Net::LDAP.new(settings)
 		end
 
