@@ -24,6 +24,7 @@ module ActiveDirectory
 
 		UAC_ACCOUNT_DISABLED = 0x0002
 		UAC_NORMAL_ACCOUNT   = 0x0200 # 512
+		UAC_PASSWORD_NEVER_EXPIRES = 0x10200 #65536
 
 		def self.filter # :nodoc:
 			Net::LDAP::Filter.eq(:objectClass,'user') & ~Net::LDAP::Filter.eq(:objectClass,'computer')
@@ -102,6 +103,29 @@ module ActiveDirectory
 		#
 		def disabled?
 			userAccountControl.to_i & UAC_ACCOUNT_DISABLED != 0
+		end
+
+		#
+		# Returns true if this account is expired.
+		#
+		def expired?
+			!lockoutTime.nil? && lockoutTime.to_i != 0
+		end
+
+		#
+		# Returns true if this account has a password that does not expire.
+		#
+		def password_never_expires?
+			userAccountControl.to_i & UAC_PASSWORD_NEVER_EXPIRES != 0
+		end
+
+		#
+		# Returns true if the user should be able to log in with a correct
+		# password (essentially, their account is not disabled or locked
+		# out).
+		#
+		def can_login?
+			!disabled? && !locked?
 		end
 
 		#
