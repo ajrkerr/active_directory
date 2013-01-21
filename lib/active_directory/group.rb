@@ -98,6 +98,7 @@ module ActiveDirectory
 		# belong to this Group, or any of its subgroups, are returned.
 		# 
 		def member_users(recursive = false)
+			return [] unless @entry.respond_to?(:member)
                         @member_users = User.find(:all, :distinguishedname => @entry.member).delete_if { |u| u.nil? }
                         if recursive then
                           self.member_groups.each do |group|
