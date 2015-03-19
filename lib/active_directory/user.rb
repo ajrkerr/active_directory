@@ -76,7 +76,7 @@ module ActiveDirectory
 		# called Marketting, this method would only return the Sales group.
 		#
 		def groups
-			@groups ||= Group.find(:all, :distinguishedname => @entry.memberOf)
+			@groups ||= Group.find(:all, :distinguishedname => @entry[:memberOf] )
 		end
 
 		#
