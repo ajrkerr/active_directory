@@ -19,6 +19,21 @@
 #++ license
 
 module ActiveDirectory
+    #
+    # Create a SID from the binary string in the directory
+    #
+    class SID < BinData::Record
+        endian :little
+        uint8 :revision
+        uint8 :dashes
+        uint48be :nt_authority
+        uint32 :nt_non_unique
+        array :uuids, :type => :uint32, :initial_length => lambda { dashes - 1 }
+        def to_s
+            ["S", self.revision, self.nt_authority, self.nt_non_unique, uuids].join("-")
+        end
+    end
+
 	#
 	# Base class for all Ruby/ActiveDirectory Entry Objects (like User and Group)
 	#
@@ -587,6 +602,24 @@ module ActiveDirectory
 	  def to_ary
 	  end
 
+      def sid
+          unless @sid
+              raise "Object has no sid" unless valid_attribute? :objectsid
+              # SID is stored as a binary in the directory
+              # however, Net::LDAP returns an hex string
+              #
+              # As per [1], there seems to be 2 ways to get back binary data.
+              #
+              # [str].pack("H*")
+              # str.gsub(/../) { |b| b.hex.chr }
+              #
+              # [1] :
+              # http://stackoverflow.com/questions/22957688/convert-string-with-hex-ascii-codes-to-characters
+              #
+              @sid = SID.read([get_attr(:objectsid)].pack("H*"))
+          end
+          @sid.to_s
+      end
 
 		def method_missing(name, args = []) # :nodoc:
 			name = name.to_s.downcase
